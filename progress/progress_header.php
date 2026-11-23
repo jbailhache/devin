@@ -5,6 +5,10 @@ if (file_exists(__DIR__ . '/config.php')) {
 if (!defined('PROGRESS_BAR_ENABLED')) {
 	define('PROGRESS_BAR_ENABLED', true);
 }
+// Apache + php-fpm (mod_proxy_fcgi) garde en tampon les petits envois : chaque mise à jour est complétée à cette taille
+if (!defined('PROGRESS_FLUSH_PADDING')) {
+	define('PROGRESS_FLUSH_PADDING', 4096);
+}
 if (PROGRESS_BAR_ENABLED) {
 	// Désactive toute mise en tampon pour que chaque mise à jour parte immédiatement vers le navigateur
 	@ini_set('zlib.output_compression', '0');
@@ -49,8 +53,6 @@ function initProgressBar($valueMax){
 	$progress_max = $valueMax;
 	$progress_step = max(1, intval($progress_max/100));
 	echo "<div class=\"progress-data-console\"><script type=\"text/javascript\">progBar.progressbar({max : $progress_max}).trigger('progressbarchange');</script>";
-	// Certains navigateurs n'affichent rien avant d'avoir reçu quelques Ko
-	echo str_repeat(' ', 4096);
 	progressFlush();
 }
 
@@ -58,6 +60,7 @@ function initProgressBar($valueMax){
  * Envoie immédiatement au navigateur ce qui a été produit
  */
 function progressFlush(){
+	echo str_repeat(' ', PROGRESS_FLUSH_PADDING);
 	if (ob_get_level() > 0) {
 		@ob_flush();
 	}
