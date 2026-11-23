@@ -19,9 +19,9 @@ initProgressBar($n);
 
 for ($i=0; $i<=$n; $i++) {
     incrProgressBar($i);
-    ob_flush();
-    flush();
-    sleep(1);
+    if ($i < $n) {
+        sleep(1);
+    }
 }
 
 endProgressBar();
