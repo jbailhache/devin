@@ -84,11 +84,13 @@ function progressAcceptsGzip(){
  * Envoie immédiatement au navigateur ce qui a été produit
  */
 function progressFlush(){
-	if (in_array('ob_gzhandler', ob_list_handlers())) {
-		// Remplissage incompressible pour que la partie compressée atteigne PROGRESS_FLUSH_PADDING octets
-		echo '<!-- ' . base64_encode(random_bytes(PROGRESS_FLUSH_PADDING)) . " -->\n";
-	} else {
-		echo str_repeat(' ', PROGRESS_FLUSH_PADDING);
+	if (PROGRESS_FLUSH_PADDING > 0) {
+		if (in_array('ob_gzhandler', ob_list_handlers())) {
+			// Remplissage incompressible pour que la partie compressée atteigne PROGRESS_FLUSH_PADDING octets
+			echo '<!-- ' . base64_encode(random_bytes(PROGRESS_FLUSH_PADDING)) . " -->\n";
+		} else {
+			echo str_repeat(' ', PROGRESS_FLUSH_PADDING);
+		}
 	}
 	if (ob_get_level() > 0) {
 		@ob_flush();
