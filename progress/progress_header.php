@@ -27,8 +27,7 @@ if (PROGRESS_BAR_ENABLED) {
 	}
 	// Si le navigateur accepte gzip, PHP compresse lui-même et vide le compresseur à chaque mise à jour :
 	// Apache (mod_deflate) ne recompresse alors pas la réponse et ne la garde plus en tampon
-	if (!headers_sent() && function_exists('ob_gzhandler')
-		&& stripos($_SERVER['HTTP_ACCEPT_ENCODING'] ?? '', 'gzip') !== false) {
+	if (!headers_sent() && function_exists('ob_gzhandler') && progressAcceptsGzip()) {
 		ob_start('ob_gzhandler');
 	}
 	ob_implicit_flush(true);
@@ -60,6 +59,25 @@ function initProgressBar($valueMax){
 	$progress_step = max(1, intval($progress_max/100));
 	echo "<div class=\"progress-data-console\"><script type=\"text/javascript\">progBar.progressbar({max : $progress_max}).trigger('progressbarchange');</script>";
 	progressFlush();
+}
+
+/**
+ * Indique si le navigateur accepte gzip (en-tête Accept-Encoding, q=0 = refus)
+ */
+function progressAcceptsGzip(){
+	foreach (explode(',', $_SERVER['HTTP_ACCEPT_ENCODING'] ?? '') as $encoding) {
+		$params = explode(';', $encoding);
+		if (strtolower(trim(array_shift($params))) !== 'gzip') {
+			continue;
+		}
+		foreach ($params as $param) {
+			if (preg_match('/^\s*q\s*=\s*([0-9.]+)/i', $param, $m) && (float)$m[1] == 0) {
+				return false;
+			}
+		}
+		return true;
+	}
+	return false;
 }
 
 /**
