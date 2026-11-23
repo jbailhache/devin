@@ -48,7 +48,7 @@ function initProgressBar($valueMax){
 	global $progress_step, $progress_max;
 	$progress_max = $valueMax;
 	$progress_step = max(1, intval($progress_max/100));
-	echo "<div class=\"progress-data-console\"><script type=\"text/javascript\">progBar.progressbar({max : $progress_max});</script>";
+	echo "<div class=\"progress-data-console\"><script type=\"text/javascript\">progBar.progressbar({max : $progress_max}).trigger('progressbarchange');</script>";
 	// Certains navigateurs n'affichent rien avant d'avoir reçu quelques Ko
 	echo str_repeat(' ', 4096);
 	progressFlush();
