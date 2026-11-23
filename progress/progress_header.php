@@ -25,6 +25,12 @@ if (PROGRESS_BAR_ENABLED) {
 	while (ob_get_level() > 0) {
 		ob_end_flush();
 	}
+	// Si le navigateur accepte gzip, PHP compresse lui-même et vide le compresseur à chaque mise à jour :
+	// Apache (mod_deflate) ne recompresse alors pas la réponse et ne la garde plus en tampon
+	if (!headers_sent() && function_exists('ob_gzhandler')
+		&& stripos($_SERVER['HTTP_ACCEPT_ENCODING'] ?? '', 'gzip') !== false) {
+		ob_start('ob_gzhandler');
+	}
 	ob_implicit_flush(true);
 }
 if(PROGRESS_BAR_ENABLED){ ?>
@@ -60,7 +66,12 @@ function initProgressBar($valueMax){
  * Envoie immédiatement au navigateur ce qui a été produit
  */
 function progressFlush(){
-	echo str_repeat(' ', PROGRESS_FLUSH_PADDING);
+	if (in_array('ob_gzhandler', ob_list_handlers())) {
+		// Remplissage incompressible pour que la partie compressée atteigne PROGRESS_FLUSH_PADDING octets
+		echo '<!-- ' . base64_encode(random_bytes(PROGRESS_FLUSH_PADDING)) . " -->\n";
+	} else {
+		echo str_repeat(' ', PROGRESS_FLUSH_PADDING);
+	}
 	if (ob_get_level() > 0) {
 		@ob_flush();
 	}
